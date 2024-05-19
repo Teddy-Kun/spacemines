@@ -10,6 +10,7 @@ pub struct Field {
 	y: u8,
 	num_mines: u16,
 	has_init: bool,
+	seed: u64,
 }
 
 impl Field {
@@ -28,7 +29,20 @@ impl Field {
 			y,
 			num_mines: mines,
 			has_init: false,
+			seed: 0,
 		};
+	}
+
+	pub fn get_num_mines(&self) -> u16 {
+		self.num_mines
+	}
+
+	pub fn get_x(&self) -> u8 {
+		self.x
+	}
+
+	pub fn get_y(&self) -> u8 {
+		self.y
 	}
 
 	// The field internally is saved as a simple array. This function returns the index in the array where something at the given coordinates lives
@@ -74,6 +88,8 @@ impl Field {
 		if self.has_init {
 			return Err(Error::new("field already initialized"));
 		}
+
+		self.seed = seed;
 
 		if self.num_mines as usize == self.field.len() {
 			self.field = vec![-1; self.num_mines as usize]
@@ -188,7 +204,7 @@ impl Display for Field {
 			to_write += "]";
 			let coords = self.index_to_coordintes(cell.0).unwrap();
 
-			if coords.0 == self.x -1 {
+			if coords.0 == self.x - 1 {
 				to_write += "\n";
 			}
 		}

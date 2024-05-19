@@ -1,3 +1,5 @@
+use cosmic::app::Settings;
+
 mod error;
 mod field;
 mod ui;
@@ -18,4 +20,11 @@ fn main() {
 	}
 
 	println!("{}", f);
+
+	let settings = Settings::default();
+
+	let res = cosmic::app::run::<ui::Spacemines>(settings, ());
+	if res.is_err() {
+		eprintln!("{:?}", res.err())
+	}
 }

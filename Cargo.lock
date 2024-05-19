@@ -5026,7 +5026,6 @@ dependencies = [
  "backtrace",
  "cosmic-time",
  "crossterm",
- "iced 0.12.0",
  "itoa",
  "libcosmic",
  "rand",
