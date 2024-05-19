@@ -4,8 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-libcosmic = { git = "https://github.com/pop-os/libcosmic"}
+libcosmic = { path = "./libcosmic", default-features = false, features = ["a11y", "tokio", "wayland", "wgpu"] }
 crossterm = "0.27.0"
 backtrace = "0.3.71"
 rand = "0.8.5"
 itoa = "1.0.11"
+cosmic-time = "0.2.0"
+iced = { path = "./libcosmic/iced"}
