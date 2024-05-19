@@ -7,4 +7,4 @@ edition = "2021"
 libcosmic = { git = "https://github.com/pop-os/libcosmic"}
 crossterm = "0.27.0"
 backtrace = "0.3.71"
-rand = { version = "0.8.5", features = ["small_rng"]}
+rand = "0.8.5"

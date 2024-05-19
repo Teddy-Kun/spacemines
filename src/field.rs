@@ -1,4 +1,4 @@
-use rand::{rngs::SmallRng, Rng, SeedableRng};
+use rand::{rngs::StdRng, Rng, SeedableRng};
 
 use super::error::Error;
 
@@ -64,7 +64,7 @@ impl Field {
 	In minesweeper, the first field clicked should never be a mine, as such we only populate the field with mines,
 	after the player clicked on the first tile
 	*/
-	pub fn init(&mut self, player_x: u8, player_y: u8, seed: u64) -> Result<(), Error> {
+	pub fn init_with_seed(&mut self, player_x: u8, player_y: u8, seed: u64) -> Result<(), Error> {
 		if player_x >= self.x || player_y >= self.y {
 			return Err(Error::new("requested coordinates are outside the grid"));
 		}
@@ -77,12 +77,16 @@ impl Field {
 			self.field = vec![-1; self.num_mines as usize]
 		}
 
-		let mut rng = SmallRng::seed_from_u64(seed);
+		let mut rng = StdRng::seed_from_u64(seed);
 
 		let mut mines = 0;
 		while mines < self.num_mines {
 			let x = rng.gen_range(0..self.x);
 			let y = rng.gen_range(0..self.y);
+
+			if x == player_x && y == player_y {
+				continue;
+			}
 
 			let mut i = self.get_index(x, y)?;
 			if self.field[i] >= 0 {
@@ -149,6 +153,14 @@ impl Field {
 		}
 
 		Ok(())
+	}
+
+	pub fn init(&mut self, player_x: u8, player_y: u8) -> Result<u64, Error> {
+		let mut rng = rand::thread_rng();
+		let seed = rng.gen();
+		self.init_with_seed(player_x, player_y, seed)?;
+
+		Ok(seed)
 	}
 
 	pub fn size(&self) -> usize {
