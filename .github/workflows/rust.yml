@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: cargo build --verbose --frozen
+      run: cargo fetch --locked && cargo build --verbose --frozen
     - name: Run tests
-      run: cargo test --verbose --frozen
+      run: cargo fetch --locked && cargo test --verbose --frozen
