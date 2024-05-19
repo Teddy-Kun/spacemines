@@ -3,8 +3,8 @@ mod field;
 mod ui;
 
 fn main() {
-	let mut f = field::Field::new(4, 4, 8);
-	let e = f.init_with_seed(0, 0, 0);
+	let mut f = field::Field::new(8, 8, 8);
+	let e = f.init_with_seed(0, 0, 69);
 	match e {
 		Ok(_) => {}
 		Err(e) => e.fatal(),

@@ -93,7 +93,7 @@ impl Field {
 			let mut i = self.get_index(x, y)?;
 			if self.field[i] >= 0 {
 				mines += 1;
-				self.field[i] = 0;
+				self.field[i] = -1;
 			}
 
 			// increase the points for all surrounding tiles
