@@ -23,14 +23,14 @@ impl Field {
 			mines = num_mines;
 		}
 
-		return Field {
+		Field {
 			field: vec![0; size as usize],
 			x,
 			y,
 			num_mines: mines,
 			has_init: false,
 			seed: 0,
-		};
+		}
 	}
 
 	pub fn get_num_mines(&self) -> u16 {
@@ -186,7 +186,7 @@ impl Field {
 	}
 
 	pub fn size(&self) -> usize {
-		return self.field.len();
+		self.field.len()
 	}
 }
 
@@ -285,7 +285,7 @@ mod field_tests {
 		let mut last_x = 254;
 		let mut last_y = -1;
 
-		const OOO_ERROR: &'static str = "field out of order";
+		const OOO_ERROR: &str = "field out of order";
 
 		for c in arr {
 			if c.0 == 0 {

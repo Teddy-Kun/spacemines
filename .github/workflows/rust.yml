@@ -17,12 +17,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install Dependencies
-      run: sudo apt install -y libxkbcommon-dev
+      run: sudo apt update && sudo apt upgrade && apt install -y libxkbcommon-dev
     - name: Init Submodules
       run: cd libcosmic && git submodule init && git submodule update --init --recursive && cd ..
     - name: Fetching Deps
       run: cargo fetch --locked
     - name: Build
-      run:  cargo build --verbose --frozen
+      run:  cargo build --frozen
     - name: Run tests
       run: cargo test --verbose --frozen

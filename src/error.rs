@@ -10,10 +10,10 @@ pub struct Error {
 
 impl Error {
 	pub fn new(message: &str) -> Error {
-		return Error {
+		Error {
 			message: message.to_string(),
 			backtrace: backtrace::Backtrace::new(),
-		};
+		}
 	}
 
 	// prints the error to stderr

@@ -10,7 +10,7 @@ const DIFFICULTY_EASY: (u8, u8, u16) = (9, 9, 10);
 const DIFFICULTY_MEDIUM: (u8, u8, u16) = (16, 16, 40);
 const DIFFICULTY_HARD: (u8, u8, u16) = (30, 16, 99);
 
-const APP_NAME: &'static str = "Spacemines";
+const APP_NAME: &str = "Spacemines";
 
 #[derive(Clone, Debug)]
 pub enum Message {
