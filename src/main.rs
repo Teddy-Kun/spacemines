@@ -4,7 +4,7 @@ mod ui;
 
 fn main() {
 	let mut f = field::Field::new(4, 4, 8);
-	let e = f.init(0, 0, 0);
+	let e = f.init_with_seed(0, 0, 0);
 	match e {
 		Ok(_) => {}
 		Err(e) => e.fatal(),
@@ -16,4 +16,6 @@ fn main() {
 		Err(e) => e.fatal(),
 		Ok(val) => println!("Val(2, 3): {}", val),
 	}
+
+	println!("{}", f);
 }

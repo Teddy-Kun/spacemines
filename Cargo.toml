@@ -8,3 +8,4 @@ libcosmic = { git = "https://github.com/pop-os/libcosmic"}
 crossterm = "0.27.0"
 backtrace = "0.3.71"
 rand = "0.8.5"
+itoa = "1.0.11"

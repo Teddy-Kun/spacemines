@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
 use super::error::Error;
@@ -165,6 +167,29 @@ impl Field {
 
 	pub fn size(&self) -> usize {
 		return self.field.len();
+	}
+}
+
+impl Display for Field {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		let mut to_write = String::new();
+		let mut itoa = itoa::Buffer::new();
+		for cell in self.field.iter().enumerate() {
+			to_write += "[";
+			if *cell.1 > -1 {
+				to_write += itoa.format(*cell.1);
+			} else {
+				to_write += "M";
+			}
+			to_write += "]";
+			let coords = self.index_to_coordintes(cell.0).unwrap();
+
+			if coords.0 == self.x -1 {
+				to_write += "\n";
+			}
+		}
+
+		write!(f, "{}", to_write)
 	}
 }
 
