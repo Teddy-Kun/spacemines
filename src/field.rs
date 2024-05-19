@@ -157,6 +157,10 @@ impl Field {
 		Ok(())
 	}
 
+	/*
+	In minesweeper, the first field clicked should never be a mine, as such we only populate the field with mines,
+	after the player clicked on the first tile
+	*/
 	pub fn init(&mut self, player_x: u8, player_y: u8) -> Result<u64, Error> {
 		let mut rng = rand::thread_rng();
 		let seed = rng.gen();
