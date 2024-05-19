@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Fetching Deps
-      run: cargo fetch --locked
+      run: cd libcosmic && git submodule init && git submodule update --init --recursive && cd .. && cargo fetch --locked
     - name: Build
       run:  cargo build --verbose --frozen
     - name: Run tests
