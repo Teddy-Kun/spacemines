@@ -2,10 +2,13 @@ use std::fmt::Display;
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
+mod tile;
+use self::tile::Tile;
+
 use super::error::Error;
 
 pub struct Field {
-	field: Vec<i8>,
+	field: Vec<Tile>,
 	x: u8,
 	y: u8,
 	num_mines: u16,
@@ -24,7 +27,7 @@ impl Field {
 		}
 
 		Field {
-			field: vec![0; size as usize],
+			field: vec![Tile::new(); size as usize],
 			x,
 			y,
 			num_mines: mines,
@@ -43,6 +46,10 @@ impl Field {
 
 	pub fn get_y(&self) -> u8 {
 		self.y
+	}
+
+	pub fn get_field(&self) -> Vec<Tile> {
+		return self.field.clone();
 	}
 
 	// The field internally is saved as a simple array. This function returns the index in the array where something at the given coordinates lives
@@ -66,14 +73,30 @@ impl Field {
 	}
 
 	pub fn is_mine(&self, x: u8, y: u8) -> Result<bool, Error> {
-		let val = self.get_value(x, y)?;
-		Ok(val <= -1)
+		let index = self.get_index(x, y)?;
+		Ok(self.field[index].is_mine)
 	}
 
-	pub fn get_value(&self, x: u8, y: u8) -> Result<i8, Error> {
+	pub fn flag(&mut self, x: u8, y: u8) -> Result<(), Error> {
 		let index = self.get_index(x, y)?;
 
-		Ok(self.field[index])
+		self.field[index].unknown = false;
+		self.field[index].flag = true;
+		Ok(())
+	}
+
+	pub fn mark_unknown(&mut self, x: u8, y: u8) -> Result<(), Error> {
+		let index = self.get_index(x, y)?;
+
+		self.field[index].unknown = true;
+		self.field[index].flag = false;
+		Ok(())
+	}
+
+	pub fn get_value(&self, x: u8, y: u8) -> Result<u8, Error> {
+		let index = self.get_index(x, y)?;
+
+		Ok(self.field[index].value)
 	}
 
 	/*
@@ -92,7 +115,10 @@ impl Field {
 		self.seed = seed;
 
 		if self.num_mines as usize == self.field.len() {
-			self.field = vec![-1; self.num_mines as usize]
+			for field in &mut self.field {
+				field.is_mine = true;
+			}
+			return Ok(());
 		}
 
 		let mut rng = StdRng::seed_from_u64(seed);
@@ -107,66 +133,50 @@ impl Field {
 			}
 
 			let mut i = self.get_index(x, y)?;
-			if self.field[i] >= 0 {
+			if !self.field[i].is_mine {
 				mines += 1;
-				self.field[i] = -1;
+				self.field[i].is_mine = true;
 			}
 
 			// increase the points for all surrounding tiles
 			if x > 0 && y > 0 {
 				i = self.get_index(x - 1, y - 1)?;
-				if self.field[i] > -1 {
-					self.field[i] += 1;
-				}
+				self.field[i].value += 1;
 			}
 
 			if y > 0 {
 				i = self.get_index(x, y - 1)?;
-				if self.field[i] > -1 {
-					self.field[i] += 1;
-				}
+				self.field[i].value += 1;
 
 				if x + 1 < self.x {
 					i = self.get_index(x + 1, y - 1)?;
-					if self.field[i] > -1 {
-						self.field[i] += 1;
-					}
+					self.field[i].value += 1;
 				}
 			}
 
 			if x > 0 {
 				i = self.get_index(x - 1, y)?;
-				if self.field[i] > -1 {
-					self.field[i] += 1;
-				}
+				self.field[i].value += 1;
 
 				if y + 1 < self.y {
 					i = self.get_index(x - 1, y + 1)?;
-					if self.field[i] > -1 {
-						self.field[i] += 1;
-					}
+					self.field[i].value += 1;
 				}
 			}
 
 			if x + 1 < self.x {
 				i = self.get_index(x + 1, y)?;
-				if self.field[i] > -1 {
-					self.field[i] += 1;
-				}
+				self.field[i].value += 1;
 
 				if y + 1 < self.y {
 					i = self.get_index(x + 1, y + 1)?;
-					if self.field[i] > -1 {
-						self.field[i] += 1;
-					}
+					self.field[i].value += 1;
 				}
 			}
 
 			if y + 1 < self.y {
 				i = self.get_index(x, y + 1)?;
-				if self.field[i] > -1 {
-					self.field[i] += 1;
-				}
+				self.field[i].value += 1;
 			}
 		}
 
@@ -188,6 +198,27 @@ impl Field {
 	pub fn size(&self) -> usize {
 		self.field.len()
 	}
+
+	pub fn print_revealed(&self) {
+		let mut to_write = String::new();
+		let mut itoa = itoa::Buffer::new();
+		for cell in self.field.iter().enumerate() {
+			to_write += "[";
+			if !cell.1.is_mine {
+				to_write += itoa.format(cell.1.value);
+			} else {
+				to_write += "M";
+			}
+			to_write += "]";
+			let coords = self.index_to_coordintes(cell.0).unwrap();
+
+			if coords.0 == self.x - 1 {
+				to_write += "\n";
+			}
+		}
+
+		println!("{}", to_write);
+	}
 }
 
 impl Display for Field {
@@ -196,10 +227,18 @@ impl Display for Field {
 		let mut itoa = itoa::Buffer::new();
 		for cell in self.field.iter().enumerate() {
 			to_write += "[";
-			if *cell.1 > -1 {
-				to_write += itoa.format(*cell.1);
+			if cell.1.flag {
+				to_write += "🚩"
+			} else if cell.1.unknown {
+				to_write += "?"
+			} else if cell.1.revealed {
+				if cell.1.is_mine {
+					to_write += "M"
+				} else {
+					to_write += itoa.format(cell.1.value);
+				}
 			} else {
-				to_write += "M";
+				to_write += " ";
 			}
 			to_write += "]";
 			let coords = self.index_to_coordintes(cell.0).unwrap();

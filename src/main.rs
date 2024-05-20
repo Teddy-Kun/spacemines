@@ -20,7 +20,9 @@ fn main() {
 	}
 
 	println!("{}", f);
+}
 
+fn run_gui() {
 	let settings = Settings::default();
 
 	let res = cosmic::app::run::<ui::Spacemines>(settings, ());
