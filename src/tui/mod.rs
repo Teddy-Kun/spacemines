@@ -85,7 +85,7 @@ pub fn run_tui() {
 					Ok(t) => {
 						if t.is_mine {
 							println!("You died :(");
-							println!("{}", f);
+							f.print_revealed();
 							process::exit(0);
 						}
 					}

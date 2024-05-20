@@ -307,10 +307,22 @@ impl Field {
 
 		true
 	}
+
+	pub fn num_flags(&self) -> u16 {
+		let mut num_flags = 0;
+		for t in &self.field {
+			if t.flag {
+				num_flags += 1;
+			}
+		}
+
+		return num_flags;
+	}
 }
 
 impl Display for Field {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		println!("Mines: {}/{}", self.num_flags(), self.num_mines);
 		let mut to_write = String::from("  ");
 		let mut itoa = itoa::Buffer::new();
 
