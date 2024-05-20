@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::fmt::Display;
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
@@ -19,12 +21,7 @@ pub struct Field {
 impl Field {
 	pub fn new(x: u8, y: u8, num_mines: u16) -> Field {
 		let size = x as u16 * y as u16;
-		let mines;
-		if num_mines > size {
-			mines = size;
-		} else {
-			mines = num_mines;
-		}
+		let mines = if num_mines > size { size } else { num_mines };
 
 		Field {
 			field: vec![Tile::new(); size as usize],
@@ -49,7 +46,7 @@ impl Field {
 	}
 
 	pub fn get_field(&self) -> Vec<Tile> {
-		return self.field.clone();
+		self.field.clone()
 	}
 
 	// The field internally is saved as a simple array. This function returns the index in the array where something at the given coordinates lives
@@ -91,6 +88,55 @@ impl Field {
 		self.field[index].unknown = true;
 		self.field[index].flag = false;
 		Ok(())
+	}
+
+	pub fn recurse_reveal(&mut self, x: u8, y: u8) {
+		if x > 0 {
+			if let Ok(i) = self.get_index(x - 1, y) {
+				self.field[i].revealed = true;
+				if self.field[i].value == 0 {
+					self.recurse_reveal(x - 1, y);
+				}
+			}
+		}
+		if x < 255 {
+			if let Ok(i) = self.get_index(x + 1, y) {
+				self.field[i].revealed = true;
+				if self.field[i].value == 0 {
+					self.recurse_reveal(x + 1, y);
+				}
+			}
+		}
+		if y > 0 {
+			if let Ok(i) = self.get_index(x, y - 1) {
+				self.field[i].revealed = true;
+				if self.field[i].value == 0 {
+					self.recurse_reveal(x, y - 1);
+				}
+			}
+		}
+		if y < 255 {
+			if let Ok(i) = self.get_index(x, y + 1) {
+				self.field[i].revealed = true;
+				if self.field[i].value == 0 {
+					self.recurse_reveal(x, y + 1);
+				}
+			}
+		}
+	}
+
+	pub fn reveal(&mut self, x: u8, y: u8) -> Result<&Tile, Error> {
+		let index = self.get_index(x, y)?;
+
+		// reveal all alround if we are 0
+		// ignore errors since we only error if we are outside, in which case we don't need to do anything
+		if self.field[index].value == 0 && !self.field[index].revealed {
+			self.recurse_reveal(x, y);
+		}
+
+		self.field[index].revealed = true;
+
+		Ok(&self.field[index])
 	}
 
 	pub fn get_value(&self, x: u8, y: u8) -> Result<u8, Error> {
@@ -228,7 +274,7 @@ impl Display for Field {
 		for cell in self.field.iter().enumerate() {
 			to_write += "[";
 			if cell.1.flag {
-				to_write += "🚩"
+				to_write += "F"
 			} else if cell.1.unknown {
 				to_write += "?"
 			} else if cell.1.revealed {
@@ -256,7 +302,7 @@ impl Display for Field {
 mod field_tests {
 	use super::*;
 
-	fn do_vecs_match<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
+	fn do_vecs_match<T: PartialEq>(a: &[T], b: &[T]) -> bool {
 		let matching = a.iter().zip(b.iter()).filter(|&(a, b)| a == b).count();
 		matching == a.len() && matching == b.len()
 	}
@@ -312,9 +358,9 @@ mod field_tests {
 			.collect::<Vec<(i16, i16)>>()
 			.try_into()
 			.unwrap();
-		for i in 0..255 * 255 {
+		for (i, a) in arr.iter_mut().enumerate().take(255 * 255) {
 			let c = f.index_to_coordintes(i)?;
-			arr[i] = (c.0 as i16, c.1 as i16);
+			*a = (c.0 as i16, c.1 as i16);
 		}
 
 		if arr[255 * 255 - 1] == (0, 0) {
