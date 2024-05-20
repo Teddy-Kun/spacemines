@@ -18,16 +18,16 @@ pub enum Message {
 	FlagCoords((u8, u8)),
 	NumMines(u16),
 	Reset,
-    WindowClose,
-    WindowNew,
-    ToggleHideContent,
+	WindowClose,
+	WindowNew,
+	ToggleHideContent,
 }
 
 pub struct Spacemines {
 	field: Field,
 
-    button_label: String,
-    hide_content: bool,
+	button_label: String,
+	hide_content: bool,
 
 	core: Core,
 	app_icon: icon::Handle,
@@ -63,8 +63,8 @@ impl cosmic::Application for Spacemines {
 		let mut app = Spacemines {
 			field: Field::new(DIFFICULTY_EASY.0, DIFFICULTY_EASY.1, DIFFICULTY_EASY.2),
 
-            button_label: String::from("I am a button"),
-            hide_content: true,
+			button_label: String::from("I am a button"),
+			hide_content: true,
 
 			core,
 			app_icon: icon::from_name("mines").into(),
@@ -75,48 +75,48 @@ impl cosmic::Application for Spacemines {
 
 		let command = app.start();
 
-        (app, command)
+		(app, command)
 	}
 
 	fn view(&self) -> Element<Self::Message> {
-        let widget = cosmic::widget::context_menu(
-            cosmic::widget::button::text(&self.button_label).on_press(Message::Reset),
-            self.context_menu(),
-        );
+		let widget = cosmic::widget::context_menu(
+			cosmic::widget::button::text(&self.button_label).on_press(Message::Reset),
+			self.context_menu(),
+		);
 
-        let centered = cosmic::widget::container(widget)
-            .width(iced::Length::Fill)
-            .height(iced::Length::Fill)
-            .align_x(iced::alignment::Horizontal::Center)
-            .align_y(iced::alignment::Vertical::Center);
+		let centered = cosmic::widget::container(widget)
+			.width(iced::Length::Fill)
+			.height(iced::Length::Fill)
+			.align_x(iced::alignment::Horizontal::Center)
+			.align_y(iced::alignment::Vertical::Center);
 
-        Element::from(centered)
-    }
+		Element::from(centered)
+	}
 }
 
 impl Spacemines
 where
 	Self: cosmic::Application,
 {
-    fn context_menu(&self) -> Option<Vec<menu::Tree<Message>>> {
-        Some(menu::items(
-            &HashMap::new(),
-            vec![
-                menu::Item::Button("New window", ContextMenuAction::WindowNew),
-                menu::Item::Divider,
-                menu::Item::Folder(
-                    "View",
-                    vec![menu::Item::CheckBox(
-                        "Hide content",
-                        self.hide_content,
-                        ContextMenuAction::ToggleHideContent,
-                    )],
-                ),
-                menu::Item::Divider,
-                menu::Item::Button("Quit", ContextMenuAction::WindowClose),
-            ],
-        ))
-    }
+	fn context_menu(&self) -> Option<Vec<menu::Tree<Message>>> {
+		Some(menu::items(
+			&HashMap::new(),
+			vec![
+				menu::Item::Button("New window", ContextMenuAction::WindowNew),
+				menu::Item::Divider,
+				menu::Item::Folder(
+					"View",
+					vec![menu::Item::CheckBox(
+						"Hide content",
+						self.hide_content,
+						ContextMenuAction::ToggleHideContent,
+					)],
+				),
+				menu::Item::Divider,
+				menu::Item::Button("Quit", ContextMenuAction::WindowClose),
+			],
+		))
+	}
 
 	fn start(&mut self) -> Command<Message> {
 		self.set_header_title(APP_NAME.to_string());
@@ -127,18 +127,18 @@ where
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ContextMenuAction {
-    WindowClose,
-    ToggleHideContent,
-    WindowNew,
+	WindowClose,
+	ToggleHideContent,
+	WindowNew,
 }
 
 impl menu::Action for ContextMenuAction {
-    type Message = Message;
-    fn message(&self, _entity_opt: Option<segmented_button::Entity>) -> Self::Message {
-        match self {
-            ContextMenuAction::WindowClose => Message::WindowClose,
-            ContextMenuAction::ToggleHideContent => Message::ToggleHideContent,
-            ContextMenuAction::WindowNew => Message::WindowNew,
-        }
-    }
+	type Message = Message;
+	fn message(&self, _entity_opt: Option<segmented_button::Entity>) -> Self::Message {
+		match self {
+			ContextMenuAction::WindowClose => Message::WindowClose,
+			ContextMenuAction::ToggleHideContent => Message::ToggleHideContent,
+			ContextMenuAction::WindowNew => Message::WindowNew,
+		}
+	}
 }
