@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::fmt::Display;
+use std::{collections::HashSet, fmt::Display};
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
@@ -9,6 +9,31 @@ use self::tile::Tile;
 
 use super::error::Error;
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]struct Coordintes {
+	x: u8,
+	y: u8,
+}
+
+impl Coordintes {
+	fn get_surrounding(&self) -> Vec<Coordintes> {
+		let mut v = Vec::new();
+		if self.x > 0 {
+			v.push(Coordintes { x: self.x-1, y: self.y })
+		}
+		if self.x < 254 {
+			v.push(Coordintes { x: self.x+1, y: self.y })
+		}
+		if self.y > 0 {
+			v.push(Coordintes { x: self.x, y: self.y-1 })
+		}
+		if self.y < 254 {
+			v.push(Coordintes { x: self.x, y: self.y+1 })
+		}
+		v
+	}
+}
+
+#[derive(Debug)]
 pub struct Field {
 	field: Vec<Tile>,
 	x: u8,
@@ -82,49 +107,34 @@ impl Field {
 		let index = self.get_index(x, y)?;
 
 		self.field[index].unknown = false;
-		self.field[index].flag = true;
+		self.field[index].flag = !self.field[index].flag;
 		Ok(())
 	}
 
 	pub fn mark_unknown(&mut self, x: u8, y: u8) -> Result<(), Error> {
 		let index = self.get_index(x, y)?;
 
-		self.field[index].unknown = true;
+		self.field[index].unknown = !self.field[index].unknown;
 		self.field[index].flag = false;
 		Ok(())
 	}
 
-	pub fn recurse_reveal(&mut self, x: u8, y: u8) {
-		if x > 0 {
-			if let Ok(i) = self.get_index(x - 1, y) {
-				self.field[i].revealed = true;
-				if self.field[i].value == 0 {
-					self.recurse_reveal(x - 1, y);
+	fn recurse_reveal(&mut self, coords: Coordintes) {
+		let mut to_reveal = coords.get_surrounding();
+
+		while to_reveal.len() > 0 {
+			let working = to_reveal.pop().unwrap();
+			if let Ok(index) = self.get_index(working.x, working.y) {
+				let f = &mut self.field[index];
+				if f.value == 0 && f.revealed == false {
+					let mut sur = working.get_surrounding();
+					to_reveal.append(&mut sur);
+					let mut dedupe = HashSet::new();
+					to_reveal.retain(|item| dedupe.insert(item.clone()));
+
 				}
-			}
-		}
-		if x < 255 {
-			if let Ok(i) = self.get_index(x + 1, y) {
-				self.field[i].revealed = true;
-				if self.field[i].value == 0 {
-					self.recurse_reveal(x + 1, y);
-				}
-			}
-		}
-		if y > 0 {
-			if let Ok(i) = self.get_index(x, y - 1) {
-				self.field[i].revealed = true;
-				if self.field[i].value == 0 {
-					self.recurse_reveal(x, y - 1);
-				}
-			}
-		}
-		if y < 255 {
-			if let Ok(i) = self.get_index(x, y + 1) {
-				self.field[i].revealed = true;
-				if self.field[i].value == 0 {
-					self.recurse_reveal(x, y + 1);
-				}
+
+				f.revealed = true;
 			}
 		}
 	}
@@ -132,14 +142,14 @@ impl Field {
 	pub fn reveal(&mut self, x: u8, y: u8) -> Result<&Tile, Error> {
 		let index = self.get_index(x, y)?;
 
-		if self.field[index].is_mine {
+		if self.field[index].is_mine || self.field[index].revealed {
 			return Ok(&self.field[index]);
 		}
 
 		// reveal all alround if we are 0
 		// ignore errors since we only error if we are outside, in which case we don't need to do anything
 		if self.field[index].value == 0 && !self.field[index].revealed {
-			self.recurse_reveal(x, y);
+			self.recurse_reveal(Coordintes{x, y});
 		}
 
 		self.field[index].revealed = true;
@@ -234,6 +244,8 @@ impl Field {
 			}
 		}
 
+		self.has_init = true;
+
 		Ok(())
 	}
 
@@ -272,6 +284,16 @@ impl Field {
 		}
 
 		println!("{}", to_write);
+	}
+
+	pub fn victory(&self) -> bool {
+		for t in &self.field {
+			if !t.revealed && !t.flag {
+				return false
+			}
+		}
+		
+		true
 	}
 }
 

@@ -108,12 +108,22 @@ pub fn run_tui() {
 				continue;
 			}
 		}
+
+		if f.victory() {
+			println!("You Won!");
+			f.print_revealed();
+			break
+		}
 	}
 }
 
 fn parse_choice(text: String) -> Result<Choice, Error> {
 	if text == "cheat" {
-		return Ok(Choice { x: 0, y: 0, action: Action::Cheat })
+		return Ok(Choice {
+			x: 0,
+			y: 0,
+			action: Action::Cheat,
+		});
 	}
 
 	if text.len() != 5 {
