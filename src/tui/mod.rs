@@ -1,13 +1,13 @@
-use core::time;
 use std::{
 	io::{self, BufRead, Write},
 	process,
-	thread::sleep,
 };
 
 use atoi::atoi;
+use clap::Parser;
 
-use crate::{error::Error, field::Field};
+use crate::{error::Error, field::Field, tui::args::Args};
+mod args;
 
 #[derive(Debug)]
 enum Action {
@@ -24,14 +24,8 @@ struct Choice {
 }
 
 pub fn run_tui() {
-	let mut f = Field::new(8, 8, 8);
-	let e = f.init_with_seed(0, 0, 69);
-	match e {
-		Ok(_) => {}
-		Err(e) => e.fatal(),
-	}
-
-	println!("Size: {}", f.size());
+	let mut f = Field::new(9, 9, 10);
+	let args = Args::parse();
 
 	let mut choice = Choice {
 		x: 0,
@@ -43,7 +37,6 @@ pub fn run_tui() {
 		println!("{}", f);
 		print!("Choose action (x,y,action:[r,f,?]): ");
 		_ = io::stdout().flush();
-		sleep(time::Duration::from_millis(333));
 		let stdin = io::stdin();
 		for line in stdin.lock().lines() {
 			println!();
@@ -66,19 +59,37 @@ pub fn run_tui() {
 			}
 		}
 
-		println!("Action: {:?}", choice);
-
 		match choice.action {
-			Action::Reveal => match f.reveal(choice.x, choice.y) {
-				Err(e) => e.fatal(),
-				Ok(t) => {
-					if t.is_mine {
-						println!("You died :(");
-						println!("{}", f);
-						process::exit(0);
+			Action::Reveal => {
+				if !f.is_initialized() {
+					let seed = if args.seed.len() == 0 {
+						match f.init(0, 0) {
+							Err(e) => {
+								e.fatal();
+								0
+							}
+							Ok(s) => s,
+						}
+					} else {
+						let s = args::seed_to_u64(&args.seed);
+						if let Err(e) = f.init_with_seed(0, 0, s) {
+							e.fatal();
+						}
+						s
+					};
+					println!("Seed: {}", seed)
+				}
+				match f.reveal(choice.x, choice.y) {
+					Err(e) => e.fatal(),
+					Ok(t) => {
+						if t.is_mine {
+							println!("You died :(");
+							println!("{}", f);
+							process::exit(0);
+						}
 					}
 				}
-			},
+			}
 			Action::Flag => {
 				if let Err(e) = f.flag(choice.x, choice.y) {
 					e.fatal();

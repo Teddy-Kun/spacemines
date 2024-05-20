@@ -33,6 +33,10 @@ impl Field {
 		}
 	}
 
+	pub fn is_initialized(&self) -> bool {
+		self.has_init
+	}
+
 	pub fn get_num_mines(&self) -> u16 {
 		self.num_mines
 	}
