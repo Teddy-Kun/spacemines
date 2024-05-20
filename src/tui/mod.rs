@@ -63,7 +63,7 @@ pub fn run_tui() {
 		match choice.action {
 			Action::Reveal => {
 				if !f.is_initialized() {
-					let seed = if args.seed.len() == 0 {
+					let seed = if args.seed.is_empty() {
 						match f.init(0, 0) {
 							Err(e) => {
 								e.fatal();
@@ -137,26 +137,25 @@ fn parse_choice(text: String) -> Result<Choice, Error> {
 	}
 
 	let xar = [chars[0] as u8];
-	let x: u8;
-	match atoi::<u8>(&xar) {
+	let x: u8 = match atoi::<u8>(&xar) {
 		None => return Err(Error::new("NaN")),
 		Some(v) => {
 			if v == 0 {
 				return Err(Error::new("Outside coordinate grid"));
 			}
-			x = v - 1;
+			v - 1
 		}
 	};
 
 	let yar = [chars[2] as u8];
-	let y: u8;
-	match atoi::<u8>(&yar) {
+
+	let y: u8 = match atoi::<u8>(&yar) {
 		None => return Err(Error::new("NaN")),
 		Some(v) => {
 			if v == 0 {
 				return Err(Error::new("Outside coordinate grid"));
 			}
-			y = v - 1
+			v - 1
 		}
 	};
 

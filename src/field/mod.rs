@@ -135,11 +135,10 @@ impl Field {
 	fn recurse_reveal(&mut self, coords: Coordintes) {
 		let mut to_reveal = coords.get_surrounding();
 
-		while to_reveal.len() > 0 {
-			let working = to_reveal.pop().unwrap();
+		while let Some(working) = to_reveal.pop() {
 			if let Ok(index) = self.get_index(working.x, working.y) {
 				let f = &mut self.field[index];
-				if f.value == 0 && f.revealed == false {
+				if f.value == 0 && !f.revealed {
 					let mut sur = working.get_surrounding();
 					to_reveal.append(&mut sur);
 					let mut dedupe = HashSet::new();
@@ -316,13 +315,13 @@ impl Field {
 			}
 		}
 
-		return num_flags;
+		num_flags
 	}
 }
 
 impl Display for Field {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		println!("Mines: {}/{}", self.num_flags(), self.num_mines);
+		write!(f, "Mines: {}/{}", self.num_flags(), self.num_mines)?;
 		let mut to_write = String::from("  ");
 		let mut itoa = itoa::Buffer::new();
 
