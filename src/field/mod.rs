@@ -132,6 +132,10 @@ impl Field {
 	pub fn reveal(&mut self, x: u8, y: u8) -> Result<&Tile, Error> {
 		let index = self.get_index(x, y)?;
 
+		if self.field[index].is_mine {
+			return Ok(&self.field[index]);
+		}
+
 		// reveal all alround if we are 0
 		// ignore errors since we only error if we are outside, in which case we don't need to do anything
 		if self.field[index].value == 0 && !self.field[index].revealed {

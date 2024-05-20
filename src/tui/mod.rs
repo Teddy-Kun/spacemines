@@ -14,6 +14,7 @@ enum Action {
 	Reveal,
 	Flag,
 	Unknown,
+	Cheat,
 	None,
 }
 #[derive(Debug)]
@@ -100,15 +101,21 @@ pub fn run_tui() {
 					e.fatal()
 				}
 			}
-
+			Action::Cheat => {
+				f.print_revealed();
+			}
 			Action::None => {
-				panic!("How did we get here?")
+				continue;
 			}
 		}
 	}
 }
 
 fn parse_choice(text: String) -> Result<Choice, Error> {
+	if text == "cheat" {
+		return Ok(Choice { x: 0, y: 0, action: Action::Cheat })
+	}
+
 	if text.len() != 5 {
 		return Err(Error::new("input too short"));
 	}
