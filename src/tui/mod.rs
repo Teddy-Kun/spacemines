@@ -112,7 +112,7 @@ pub fn run_tui() {
 		if f.victory() {
 			println!("You Won!");
 			f.print_revealed();
-			break
+			break;
 		}
 	}
 }
@@ -137,15 +137,27 @@ fn parse_choice(text: String) -> Result<Choice, Error> {
 	}
 
 	let xar = [chars[0] as u8];
-	let x: u8 = match atoi(&xar) {
+	let x: u8;
+	match atoi::<u8>(&xar) {
 		None => return Err(Error::new("NaN")),
-		Some(v) => v,
+		Some(v) => {
+			if v == 0 {
+				return Err(Error::new("Outside coordinate grid"));
+			}
+			x = v - 1;
+		}
 	};
 
 	let yar = [chars[2] as u8];
-	let y: u8 = match atoi(&yar) {
+	let y: u8;
+	match atoi::<u8>(&yar) {
 		None => return Err(Error::new("NaN")),
-		Some(v) => v,
+		Some(v) => {
+			if v == 0 {
+				return Err(Error::new("Outside coordinate grid"));
+			}
+			y = v - 1
+		}
 	};
 
 	let action = match chars[4] {

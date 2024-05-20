@@ -9,7 +9,8 @@ use self::tile::Tile;
 
 use super::error::Error;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]struct Coordintes {
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct Coordintes {
 	x: u8,
 	y: u8,
 }
@@ -18,16 +19,28 @@ impl Coordintes {
 	fn get_surrounding(&self) -> Vec<Coordintes> {
 		let mut v = Vec::new();
 		if self.x > 0 {
-			v.push(Coordintes { x: self.x-1, y: self.y })
+			v.push(Coordintes {
+				x: self.x - 1,
+				y: self.y,
+			})
 		}
 		if self.x < 254 {
-			v.push(Coordintes { x: self.x+1, y: self.y })
+			v.push(Coordintes {
+				x: self.x + 1,
+				y: self.y,
+			})
 		}
 		if self.y > 0 {
-			v.push(Coordintes { x: self.x, y: self.y-1 })
+			v.push(Coordintes {
+				x: self.x,
+				y: self.y - 1,
+			})
 		}
 		if self.y < 254 {
-			v.push(Coordintes { x: self.x, y: self.y+1 })
+			v.push(Coordintes {
+				x: self.x,
+				y: self.y + 1,
+			})
 		}
 		v
 	}
@@ -131,7 +144,6 @@ impl Field {
 					to_reveal.append(&mut sur);
 					let mut dedupe = HashSet::new();
 					to_reveal.retain(|item| dedupe.insert(item.clone()));
-
 				}
 
 				f.revealed = true;
@@ -149,7 +161,7 @@ impl Field {
 		// reveal all alround if we are 0
 		// ignore errors since we only error if we are outside, in which case we don't need to do anything
 		if self.field[index].value == 0 && !self.field[index].revealed {
-			self.recurse_reveal(Coordintes{x, y});
+			self.recurse_reveal(Coordintes { x, y });
 		}
 
 		self.field[index].revealed = true;
@@ -289,18 +301,28 @@ impl Field {
 	pub fn victory(&self) -> bool {
 		for t in &self.field {
 			if !t.revealed && !t.flag {
-				return false
+				return false;
 			}
 		}
-		
+
 		true
 	}
 }
 
 impl Display for Field {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		let mut to_write = String::new();
+		let mut to_write = String::from("  ");
 		let mut itoa = itoa::Buffer::new();
+
+		for i in 0..self.x {
+			to_write += " ";
+			to_write += itoa.format(i + 1);
+			to_write += "|";
+		}
+
+		to_write += "\n1|";
+
+		let mut y: u8 = 1;
 		for cell in self.field.iter().enumerate() {
 			to_write += "[";
 			if cell.1.flag {
@@ -321,6 +343,11 @@ impl Display for Field {
 
 			if coords.0 == self.x - 1 {
 				to_write += "\n";
+				if self.y > y {
+					y += 1;
+					to_write += itoa.format(y);
+					to_write += "|";
+				}
 			}
 		}
 
