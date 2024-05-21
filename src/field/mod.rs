@@ -321,7 +321,7 @@ impl Field {
 
 impl Display for Field {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "Mines: {}/{}", self.num_flags(), self.num_mines)?;
+		writeln!(f, "Mines: {}/{}", self.num_flags(), self.num_mines)?;
 		let mut to_write = String::from("  ");
 		let mut itoa = itoa::Buffer::new();
 
