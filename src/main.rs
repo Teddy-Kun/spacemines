@@ -8,8 +8,6 @@ mod gui;
 #[cfg(feature = "tui")]
 mod tui;
 
-// TODO: Properly handle "tui" and "gui" being enabled at the same time
-
 #[cfg(all(feature = "tui", not(feature = "gui")))]
 fn main() {
 	tui::run_tui();
@@ -23,9 +21,17 @@ fn main() {
 }
 
 #[cfg(all(feature = "tui", feature = "gui"))]
-compile_error!("feature \"tui\" and feature \"gui\" cannot be enabled at the same time");
-#[cfg(all(feature = "tui", feature = "gui"))]
-fn main() {}
+fn main() {
+	use args::Args;
+	use clap::Parser;
+
+	let args = Args::parse();
+	if args.tui {
+		tui::run_tui()
+	} else if let Err(e) = gui::run_gui() {
+		e.fatal()
+	}
+}
 
 #[cfg(all(not(feature = "tui"), not(feature = "gui")))]
 compile_error!("Either feature \"tui\" or feature \"gui\" must be enabled");

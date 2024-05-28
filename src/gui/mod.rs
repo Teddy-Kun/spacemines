@@ -1,13 +1,18 @@
+#![allow(dead_code)]
 // Copyright 2023 System76 <info@system76.com>
 // SPDX-License-Identifier: MPL-2.0
 
 //! Application API example
 
+use clap::Parser;
 use cosmic::app::{Command, Core, Settings};
 use cosmic::iced::window::Id;
 use cosmic::{executor, iced, ApplicationExt, Element};
 
+use crate::args::Args;
 use crate::error::Error;
+use crate::field::tile::Coordintes;
+use crate::field::Field;
 
 /// Runs application with these settings
 pub fn run_gui() -> Result<(), Error> {
@@ -15,8 +20,8 @@ pub fn run_gui() -> Result<(), Error> {
 	let _ = tracing_log::LogTracer::init();
 
 	if let Err(e) = cosmic::app::run::<App>(Settings::default(), ()) {
-        return Err(Error::new(e.to_string().as_str()))
-    }
+		return Err(Error::new(e.to_string().as_str()));
+	}
 
 	Ok(())
 }
@@ -26,6 +31,9 @@ pub fn run_gui() -> Result<(), Error> {
 pub enum Message {
 	EditMode(bool),
 	Input(String),
+	NewField(Coordintes, u16),
+	ClickedCoords(Coordintes),
+	RClickedCoords(Coordintes),
 }
 
 /// The [`App`] stores application-specific state.
@@ -34,6 +42,8 @@ pub struct App {
 	input: String,
 	editing: bool,
 	search_id: cosmic::widget::Id,
+	field: Field,
+	seed: u64,
 }
 
 /// Implement [`cosmic::Application`] to integrate with COSMIC.
@@ -60,11 +70,14 @@ impl cosmic::Application for App {
 
 	/// Creates the application, and optionally emits command on initialize.
 	fn init(core: Core, _input: Self::Flags) -> (Self, Command<Self::Message>) {
+		let arguments = Args::parse();
 		let mut app = App {
 			core,
 			editing: false,
 			input: String::from("Spacemine Demo"),
 			search_id: cosmic::widget::Id::unique(),
+			field: Field::new(arguments.x, arguments.y, arguments.mines),
+			seed: arguments.seed_to_u64(),
 		};
 
 		let commands = Command::batch(vec![
@@ -84,6 +97,27 @@ impl cosmic::Application for App {
 
 			Message::EditMode(editing) => {
 				self.editing = editing;
+			}
+
+			Message::NewField(coords, num_mines) => {
+				self.field = Field::new(coords.x, coords.y, num_mines)
+			}
+
+			Message::ClickedCoords(coords) => {
+				if !self.field.is_initialized() {
+					if let Err(e) = self.field.init(&coords) {
+						e.fatal()
+					}
+				}
+
+				println!("Clicked: {:?}", coords);
+
+				todo!("Field stuff")
+			}
+
+			Message::RClickedCoords(coords) => {
+				println!("Right Clicked: {:?}", coords);
+				todo!("Field stuff")
 			}
 		}
 
@@ -120,7 +154,7 @@ where
 	Self: cosmic::Application,
 {
 	fn update_title(&mut self) -> Command<Message> {
-		let window_title = format!("Spacemines");
+		let window_title = "Spacemines".to_string();
 		let id = Id::unique();
 		self.set_header_title(window_title.clone());
 		self.set_window_title(window_title, id)
