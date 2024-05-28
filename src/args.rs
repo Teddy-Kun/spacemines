@@ -1,17 +1,18 @@
 use atoi::atoi;
 use clap::Parser;
+use rand::Rng;
 
 #[derive(Parser, Debug)]
 #[command(version)]
 pub struct Args {
-	#[arg(short,long,default_value_t = String::from(""))]
-	pub seed: String,
+	#[arg(short,long)]
+	pub seed: Option<String>,
 
-	#[arg(short, default_value_t = 9)]
-	pub x: u8,
+	#[arg(long, short = 'x', default_value_t = 9)]
+	pub width: u8,
 
-	#[arg(short, default_value_t = 9)]
-	pub y: u8,
+	#[arg(long, short = 'y', default_value_t = 9)]
+	pub height: u8,
 
 	#[arg(short, default_value_t = 10)]
 	pub mines: u16,
@@ -21,8 +22,19 @@ pub struct Args {
 }
 
 impl Args {
-	pub fn seed_to_u64(&self) -> u64 {
-		let chars: Vec<char> = self.seed.chars().collect();
+	pub fn get_seed(&mut self) -> u64 {
+		let seed = match &self.seed {
+			None => {
+				let mut rng = rand::thread_rng();
+				return rng.gen();
+			}
+
+			Some(s) => {
+				s.clone()
+			}
+		};
+		
+		let chars: Vec<char> = seed.chars().collect();
 		let mut char_bytes: Vec<u8> = Vec::new();
 		for c in chars {
 			char_bytes.push(c as u8);
@@ -33,5 +45,10 @@ impl Args {
 		}
 
 		todo!("Hash string")
+	}
+
+	pub fn new_random_seed(&mut self) -> u64 {
+		let mut rng = rand::thread_rng();
+		rng.gen()
 	}
 }

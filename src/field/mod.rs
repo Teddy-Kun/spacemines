@@ -3,7 +3,7 @@
 use std::{collections::HashSet, fmt::Display};
 
 pub mod tile;
-use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand::{rngs::StdRng, SeedableRng};
 
 use self::tile::{Coordintes, Tile};
 
@@ -150,7 +150,7 @@ impl Field {
 	In minesweeper, the first field clicked should never be a mine, as such we only populate the field with mines,
 	after the player clicked on the first tile
 	*/
-	pub fn init_with_seed(&mut self, player_start: &Coordintes, seed: u64) -> Result<(), Error> {
+	pub fn init(&mut self, player_start: &Coordintes, seed: u64) -> Result<(), Error> {
 		if !player_start.is_inside(&self.limit) {
 			return Err(Error::new("requested coordinates are outside the grid"));
 		}
@@ -195,18 +195,6 @@ impl Field {
 		self.has_init = true;
 
 		Ok(())
-	}
-
-	/*
-	In minesweeper, the first field clicked should never be a mine, as such we only populate the field with mines,
-	after the player clicked on the first tile
-	*/
-	pub fn init(&mut self, player_start: &Coordintes) -> Result<u64, Error> {
-		let mut rng = rand::thread_rng();
-		let seed = rng.gen();
-		self.init_with_seed(player_start, seed)?;
-
-		Ok(seed)
 	}
 
 	pub fn size(&self) -> usize {

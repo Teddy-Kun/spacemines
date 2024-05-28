@@ -27,9 +27,9 @@ struct Choice {
 }
 
 pub fn run_tui() {
-	let args = Args::parse();
+	let mut args = Args::parse();
 
-	let mut f = Field::new(args.x, args.y, args.mines);
+	let mut f = Field::new(args.width, args.height, args.mines);
 
 	let mut choice = Choice {
 		coords: Coordintes { x: 0, y: 0 },
@@ -65,21 +65,11 @@ pub fn run_tui() {
 		match choice.action {
 			Action::Reveal => {
 				if !f.is_initialized() {
-					let seed = if args.seed.is_empty() {
-						match f.init(&choice.coords) {
-							Err(e) => {
-								e.fatal();
-								0
-							}
-							Ok(s) => s,
-						}
-					} else {
-						let s = args.seed_to_u64();
-						if let Err(e) = f.init_with_seed(&choice.coords, s) {
-							e.fatal();
-						}
-						s
-					};
+					let seed = args.get_seed();
+					if let Err(e) = f.init(&choice.coords, seed) {
+						e.fatal()
+					}
+
 					println!("Seed: {}", seed)
 				}
 				match f.reveal(&choice.coords) {

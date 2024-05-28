@@ -31,6 +31,7 @@ pub fn run_gui() -> Result<(), Error> {
 pub enum Message {
 	EditMode(bool),
 	Input(String),
+	NewSeed,
 	NewField(Coordintes, u16),
 	ClickedCoords(Coordintes),
 	RClickedCoords(Coordintes),
@@ -49,7 +50,7 @@ pub struct App {
 /// Implement [`cosmic::Application`] to integrate with COSMIC.
 impl cosmic::Application for App {
 	/// Default async executor to use with the app.
-	type Executor = executor::Default;
+	type Executor = executor::multi::Executor;
 
 	/// Argument received [`cosmic::Application::new`].
 	type Flags = ();
@@ -70,14 +71,14 @@ impl cosmic::Application for App {
 
 	/// Creates the application, and optionally emits command on initialize.
 	fn init(core: Core, _input: Self::Flags) -> (Self, Command<Self::Message>) {
-		let arguments = Args::parse();
+		let mut args = Args::parse();
 		let mut app = App {
 			core,
 			editing: false,
 			input: String::from("Spacemine Demo"),
 			search_id: cosmic::widget::Id::unique(),
-			field: Field::new(arguments.x, arguments.y, arguments.mines),
-			seed: arguments.seed_to_u64(),
+			field: Field::new(args.width, args.height, args.mines),
+			seed: args.get_seed(),
 		};
 
 		let commands = Command::batch(vec![
@@ -99,13 +100,18 @@ impl cosmic::Application for App {
 				self.editing = editing;
 			}
 
+			Message::NewSeed => {
+				let mut args = Args::parse();
+				self.seed = args.new_random_seed();
+			}
+
 			Message::NewField(coords, num_mines) => {
 				self.field = Field::new(coords.x, coords.y, num_mines)
 			}
 
 			Message::ClickedCoords(coords) => {
 				if !self.field.is_initialized() {
-					if let Err(e) = self.field.init(&coords) {
+					if let Err(e) = self.field.init(&coords, self.seed) {
 						e.fatal()
 					}
 				}
