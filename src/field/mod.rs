@@ -4,75 +4,10 @@ use std::{collections::HashSet, fmt::Display};
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
-mod tile;
-use self::tile::Tile;
+pub mod tile;
+use self::tile::{Coordintes, Tile};
 
 use super::error::Error;
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-struct Coordintes {
-	x: u8,
-	y: u8,
-}
-
-impl Coordintes {
-	fn get_surrounding(&self) -> Vec<Coordintes> {
-		let mut v = Vec::new();
-
-		if self.x > 0 {
-			if self.y > 0 {
-				v.push(Coordintes {
-					x: self.x - 1,
-					y: self.y - 1,
-				})
-			}
-
-			v.push(Coordintes {
-				x: self.x - 1,
-				y: self.y,
-			});
-
-			if self.y < 254 {
-				v.push(Coordintes {
-					x: self.x - 1,
-					y: self.y + 1,
-				});
-			}
-		}
-
-		if self.x < 254 {
-			v.push(Coordintes {
-				x: self.x + 1,
-				y: self.y - 1,
-			});
-
-			v.push(Coordintes {
-				x: self.x + 1,
-				y: self.y,
-			});
-
-			if self.y < 254 {
-				v.push(Coordintes {
-					x: self.x + 1,
-					y: self.y + 1,
-				});
-			}
-		}
-		if self.y > 0 {
-			v.push(Coordintes {
-				x: self.x,
-				y: self.y - 1,
-			})
-		}
-		if self.y < 254 {
-			v.push(Coordintes {
-				x: self.x,
-				y: self.y + 1,
-			})
-		}
-		v
-	}
-}
 
 #[derive(Debug)]
 pub struct Field {
@@ -121,7 +56,9 @@ impl Field {
 
 	// The field internally is saved as a simple array. This function returns the index in the array where something at the given coordinates lives
 	// (0,0) is in the top left corner
-	fn get_index(&self, x: u8, y: u8) -> Result<usize, Error> {
+	fn get_index(&self, coords: &Coordintes) -> Result<usize, Error> {
+		let x = coords.x;
+		let y = coords.y;
 		if x >= self.x || y >= self.y {
 			return Err(Error::new("requested coordinates are outside the grid"));
 		}
@@ -139,21 +76,21 @@ impl Field {
 		Ok((x, y))
 	}
 
-	pub fn is_mine(&self, x: u8, y: u8) -> Result<bool, Error> {
-		let index = self.get_index(x, y)?;
+	pub fn is_mine(&self, coords: Coordintes) -> Result<bool, Error> {
+		let index = self.get_index(&coords)?;
 		Ok(self.field[index].is_mine)
 	}
 
-	pub fn flag(&mut self, x: u8, y: u8) -> Result<(), Error> {
-		let index = self.get_index(x, y)?;
+	pub fn flag(&mut self, coords: Coordintes) -> Result<(), Error> {
+		let index = self.get_index(&coords)?;
 
 		self.field[index].unknown = false;
 		self.field[index].flag = !self.field[index].flag;
 		Ok(())
 	}
 
-	pub fn mark_unknown(&mut self, x: u8, y: u8) -> Result<(), Error> {
-		let index = self.get_index(x, y)?;
+	pub fn mark_unknown(&mut self, coords: Coordintes) -> Result<(), Error> {
+		let index = self.get_index(&coords)?;
 
 		self.field[index].unknown = !self.field[index].unknown;
 		self.field[index].flag = false;
@@ -161,13 +98,13 @@ impl Field {
 	}
 
 	fn recurse_reveal(&mut self, coords: Coordintes) {
-		let mut to_reveal = coords.get_surrounding();
+		let mut to_reveal = coords.get_surrounding(self.x, self.y);
 
 		while let Some(working) = to_reveal.pop() {
-			if let Ok(index) = self.get_index(working.x, working.y) {
+			if let Ok(index) = self.get_index(&working) {
 				let f = &mut self.field[index];
 				if f.value == 0 && !f.revealed {
-					let mut sur = working.get_surrounding();
+					let mut sur = working.get_surrounding(self.x, self.y);
 					to_reveal.append(&mut sur);
 					let mut dedupe = HashSet::new();
 					to_reveal.retain(|item| dedupe.insert(item.clone()));
@@ -178,8 +115,8 @@ impl Field {
 		}
 	}
 
-	pub fn reveal(&mut self, x: u8, y: u8) -> Result<&Tile, Error> {
-		let index = self.get_index(x, y)?;
+	pub fn reveal(&mut self, coords: Coordintes) -> Result<&Tile, Error> {
+		let index = self.get_index(&coords)?;
 
 		if self.field[index].is_mine || self.field[index].revealed {
 			return Ok(&self.field[index]);
@@ -188,7 +125,7 @@ impl Field {
 		// reveal all alround if we are 0
 		// ignore errors since we only error if we are outside, in which case we don't need to do anything
 		if self.field[index].value == 0 && !self.field[index].revealed {
-			self.recurse_reveal(Coordintes { x, y });
+			self.recurse_reveal(coords);
 		}
 
 		self.field[index].revealed = true;
@@ -196,8 +133,8 @@ impl Field {
 		Ok(&self.field[index])
 	}
 
-	pub fn get_value(&self, x: u8, y: u8) -> Result<u8, Error> {
-		let index = self.get_index(x, y)?;
+	pub fn get_value(&self, coords: Coordintes) -> Result<u8, Error> {
+		let index = self.get_index(&coords)?;
 
 		Ok(self.field[index].value)
 	}
@@ -206,8 +143,8 @@ impl Field {
 	In minesweeper, the first field clicked should never be a mine, as such we only populate the field with mines,
 	after the player clicked on the first tile
 	*/
-	pub fn init_with_seed(&mut self, player_x: u8, player_y: u8, seed: u64) -> Result<(), Error> {
-		if player_x >= self.x || player_y >= self.y {
+	pub fn init_with_seed(&mut self, player_start: &Coordintes, seed: u64) -> Result<(), Error> {
+		if player_start.x >= self.x || player_start.y >= self.y {
 			return Err(Error::new("requested coordinates are outside the grid"));
 		}
 
@@ -228,14 +165,16 @@ impl Field {
 
 		let mut mines = 0;
 		while mines < self.num_mines {
-			let x = rng.gen_range(0..self.x);
-			let y = rng.gen_range(0..self.y);
+			let coords = Coordintes {
+				x: rng.gen_range(0..self.x),
+				y: rng.gen_range(0..self.x),
+			};
 
-			if x == player_x && y == player_y {
+			if coords.x == player_start.x && coords.y == player_start.y {
 				continue;
 			}
 
-			let mut i = self.get_index(x, y)?;
+			let i = self.get_index(&coords)?;
 			if !self.field[i].is_mine {
 				mines += 1;
 				self.field[i].is_mine = true;
@@ -243,44 +182,10 @@ impl Field {
 				continue;
 			}
 
-			// increase the points for all surrounding tiles
-			if x > 0 && y > 0 {
-				i = self.get_index(x - 1, y - 1)?;
-				self.field[i].value += 1;
-			}
+			let mine_surroundings = coords.get_surrounding(self.x, self.y);
 
-			if y > 0 {
-				i = self.get_index(x, y - 1)?;
-				self.field[i].value += 1;
-
-				if x + 1 < self.x {
-					i = self.get_index(x + 1, y - 1)?;
-					self.field[i].value += 1;
-				}
-			}
-
-			if x > 0 {
-				i = self.get_index(x - 1, y)?;
-				self.field[i].value += 1;
-
-				if y + 1 < self.y {
-					i = self.get_index(x - 1, y + 1)?;
-					self.field[i].value += 1;
-				}
-			}
-
-			if x + 1 < self.x {
-				i = self.get_index(x + 1, y)?;
-				self.field[i].value += 1;
-
-				if y + 1 < self.y {
-					i = self.get_index(x + 1, y + 1)?;
-					self.field[i].value += 1;
-				}
-			}
-
-			if y + 1 < self.y {
-				i = self.get_index(x, y + 1)?;
+			for coords in mine_surroundings {
+				let i = self.get_index(&coords)?;
 				self.field[i].value += 1;
 			}
 		}
@@ -294,10 +199,10 @@ impl Field {
 	In minesweeper, the first field clicked should never be a mine, as such we only populate the field with mines,
 	after the player clicked on the first tile
 	*/
-	pub fn init(&mut self, player_x: u8, player_y: u8) -> Result<u64, Error> {
+	pub fn init(&mut self, player_start: &Coordintes) -> Result<u64, Error> {
 		let mut rng = rand::thread_rng();
 		let seed = rng.gen();
-		self.init_with_seed(player_x, player_y, seed)?;
+		self.init_with_seed(player_start, seed)?;
 
 		Ok(seed)
 	}
@@ -411,7 +316,8 @@ mod field_tests {
 		let f = Field::new(255, 255, 1);
 		for y in 0..255 {
 			for x in 0..255 {
-				let i = f.get_index(x, y)?;
+				let c = Coordintes { x, y };
+				let i = f.get_index(&c)?;
 				v.push(i);
 			}
 		}

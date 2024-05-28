@@ -6,7 +6,11 @@ use std::{
 use atoi::atoi;
 use clap::Parser;
 
-use crate::{error::Error, field::Field, tui::args::Args};
+use crate::{
+	error::Error,
+	field::{tile::Coordintes, Field},
+	tui::args::Args,
+};
 mod args;
 
 #[derive(Debug)]
@@ -19,8 +23,7 @@ enum Action {
 }
 #[derive(Debug)]
 struct Choice {
-	x: u8,
-	y: u8,
+	coords: Coordintes,
 	action: Action,
 }
 
@@ -29,8 +32,7 @@ pub fn run_tui() {
 	let args = Args::parse();
 
 	let mut choice = Choice {
-		x: 0,
-		y: 0,
+		coords: Coordintes { x: 0, y: 0 },
 		action: Action::None,
 	};
 
@@ -64,7 +66,7 @@ pub fn run_tui() {
 			Action::Reveal => {
 				if !f.is_initialized() {
 					let seed = if args.seed.is_empty() {
-						match f.init(0, 0) {
+						match f.init(&choice.coords) {
 							Err(e) => {
 								e.fatal();
 								0
@@ -73,14 +75,14 @@ pub fn run_tui() {
 						}
 					} else {
 						let s = args::seed_to_u64(&args.seed);
-						if let Err(e) = f.init_with_seed(0, 0, s) {
+						if let Err(e) = f.init_with_seed(&choice.coords, s) {
 							e.fatal();
 						}
 						s
 					};
 					println!("Seed: {}", seed)
 				}
-				match f.reveal(choice.x, choice.y) {
+				match f.reveal(choice.coords) {
 					Err(e) => e.fatal(),
 					Ok(t) => {
 						if t.is_mine {
@@ -92,12 +94,12 @@ pub fn run_tui() {
 				}
 			}
 			Action::Flag => {
-				if let Err(e) = f.flag(choice.x, choice.y) {
+				if let Err(e) = f.flag(choice.coords) {
 					e.fatal();
 				}
 			}
 			Action::Unknown => {
-				if let Err(e) = f.mark_unknown(choice.x, choice.y) {
+				if let Err(e) = f.mark_unknown(choice.coords) {
 					e.fatal()
 				}
 			}
@@ -120,8 +122,7 @@ pub fn run_tui() {
 fn parse_choice(text: String) -> Result<Choice, Error> {
 	if text == "cheat" {
 		return Ok(Choice {
-			x: 0,
-			y: 0,
+			coords: Coordintes { x: 0, y: 0 },
 			action: Action::Cheat,
 		});
 	}
@@ -166,5 +167,8 @@ fn parse_choice(text: String) -> Result<Choice, Error> {
 		_ => return Err(Error::new("unknown action")),
 	};
 
-	Ok(Choice { x, y, action })
+	Ok(Choice {
+		coords: Coordintes { x: x, y: y },
+		action,
+	})
 }
