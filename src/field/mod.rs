@@ -2,9 +2,9 @@
 
 use std::{collections::HashSet, fmt::Display};
 
+pub mod tile;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
-pub mod tile;
 use self::tile::{Coordintes, Tile};
 
 use super::error::Error;
@@ -12,8 +12,7 @@ use super::error::Error;
 #[derive(Debug)]
 pub struct Field {
 	field: Vec<Tile>,
-	x: u8,
-	y: u8,
+	limit: Coordintes,
 	num_mines: u16,
 	has_init: bool,
 	seed: u64,
@@ -26,8 +25,7 @@ impl Field {
 
 		Field {
 			field: vec![Tile::new(); size as usize],
-			x,
-			y,
+			limit: Coordintes { x, y },
 			num_mines: mines,
 			has_init: false,
 			seed: 0,
@@ -42,12 +40,8 @@ impl Field {
 		self.num_mines
 	}
 
-	pub fn get_x(&self) -> u8 {
-		self.x
-	}
-
-	pub fn get_y(&self) -> u8 {
-		self.y
+	pub fn get_limit(&self) -> Coordintes {
+		self.limit
 	}
 
 	pub fn get_field(&self) -> Vec<Tile> {
@@ -57,13 +51,11 @@ impl Field {
 	// The field internally is saved as a simple array. This function returns the index in the array where something at the given coordinates lives
 	// (0,0) is in the top left corner
 	fn get_index(&self, coords: &Coordintes) -> Result<usize, Error> {
-		let x = coords.x;
-		let y = coords.y;
-		if x >= self.x || y >= self.y {
+		if !coords.is_inside(&self.limit) {
 			return Err(Error::new("requested coordinates are outside the grid"));
 		}
 
-		Ok(x as usize + (y as usize * self.x as usize))
+		Ok(coords.x as usize + (coords.y as usize * self.limit.x as usize))
 	}
 
 	fn index_to_coordintes(&self, index: usize) -> Result<(u8, u8), Error> {
@@ -71,8 +63,8 @@ impl Field {
 			return Err(Error::new("index outside field"));
 		}
 
-		let x = (index % self.x as usize) as u8;
-		let y = (index / self.x as usize) as u8;
+		let x = (index % self.limit.x as usize) as u8;
+		let y = (index / self.limit.x as usize) as u8;
 		Ok((x, y))
 	}
 
@@ -98,16 +90,16 @@ impl Field {
 	}
 
 	fn recurse_reveal(&mut self, coords: Coordintes) {
-		let mut to_reveal = coords.get_surrounding(self.x, self.y);
+		let mut to_reveal = coords.get_surrounding(&self.limit);
 
 		while let Some(working) = to_reveal.pop() {
 			if let Ok(index) = self.get_index(&working) {
 				let f = &mut self.field[index];
 				if f.value == 0 && !f.revealed {
-					let mut sur = working.get_surrounding(self.x, self.y);
+					let mut sur = working.get_surrounding(&self.limit);
 					to_reveal.append(&mut sur);
 					let mut dedupe = HashSet::new();
-					to_reveal.retain(|item| dedupe.insert(item.clone()));
+					to_reveal.retain(|item| dedupe.insert(*item));
 				}
 
 				f.revealed = true;
@@ -144,7 +136,7 @@ impl Field {
 	after the player clicked on the first tile
 	*/
 	pub fn init_with_seed(&mut self, player_start: &Coordintes, seed: u64) -> Result<(), Error> {
-		if player_start.x >= self.x || player_start.y >= self.y {
+		if !player_start.is_inside(&self.limit) {
 			return Err(Error::new("requested coordinates are outside the grid"));
 		}
 
@@ -161,15 +153,10 @@ impl Field {
 			return Ok(());
 		}
 
-		let mut rng = StdRng::seed_from_u64(seed);
-
 		let mut mines = 0;
+		let mut rng = StdRng::seed_from_u64(seed);
 		while mines < self.num_mines {
-			let coords = Coordintes {
-				x: rng.gen_range(0..self.x),
-				y: rng.gen_range(0..self.x),
-			};
-
+			let coords = Coordintes::new_random(&self.limit, &mut rng);
 			if coords.x == player_start.x && coords.y == player_start.y {
 				continue;
 			}
@@ -182,7 +169,7 @@ impl Field {
 				continue;
 			}
 
-			let mine_surroundings = coords.get_surrounding(self.x, self.y);
+			let mine_surroundings = coords.get_surrounding(&self.limit);
 
 			for coords in mine_surroundings {
 				let i = self.get_index(&coords)?;
@@ -224,7 +211,7 @@ impl Field {
 			to_write += "]";
 			let coords = self.index_to_coordintes(cell.0).unwrap();
 
-			if coords.0 == self.x - 1 {
+			if coords.0 == self.limit.x - 1 {
 				to_write += "\n";
 			}
 		}
@@ -260,7 +247,7 @@ impl Display for Field {
 		let mut to_write = String::from("  ");
 		let mut itoa = itoa::Buffer::new();
 
-		for i in 0..self.x {
+		for i in 0..self.limit.x {
 			to_write += " ";
 			to_write += itoa.format(i + 1);
 			to_write += "|";
@@ -287,9 +274,9 @@ impl Display for Field {
 			to_write += "]";
 			let coords = self.index_to_coordintes(cell.0).unwrap();
 
-			if coords.0 == self.x - 1 {
+			if coords.0 == self.limit.x - 1 {
 				to_write += "\n";
-				if self.y > y {
+				if self.limit.y > y {
 					y += 1;
 					to_write += itoa.format(y);
 					to_write += "|";

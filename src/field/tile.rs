@@ -1,3 +1,5 @@
+use rand::{rngs::StdRng, Rng};
+
 #[derive(Debug, Clone)]
 pub struct Tile {
 	pub value: u8,
@@ -26,7 +28,25 @@ pub struct Coordintes {
 }
 
 impl Coordintes {
-	pub fn get_surrounding(&self, limit_x: u8, limit_y: u8) -> Vec<Coordintes> {
+	pub fn new() -> Coordintes {
+		Coordintes { x: 0, y: 0 }
+	}
+
+	pub fn new_random(limit: &Coordintes, rng: &mut StdRng) -> Coordintes {
+		Coordintes {
+			x: rng.gen_range(0..limit.x),
+			y: rng.gen_range(0..limit.x),
+		}
+	}
+
+	pub fn is_inside(&self, inside_of: &Coordintes) -> bool {
+		if self.x < inside_of.x && self.y < inside_of.y {
+			return true;
+		}
+
+		false
+	}
+	pub fn get_surrounding(&self, limit: &Coordintes) -> Vec<Coordintes> {
 		let mut v = Vec::new();
 
 		if self.x > 0 {
@@ -42,7 +62,7 @@ impl Coordintes {
 				y: self.y,
 			});
 
-			if self.y < limit_y {
+			if self.y < limit.y {
 				v.push(Coordintes {
 					x: self.x - 1,
 					y: self.y + 1,
@@ -50,7 +70,7 @@ impl Coordintes {
 			}
 		}
 
-		if self.x < limit_x {
+		if self.x < limit.x {
 			v.push(Coordintes {
 				x: self.x + 1,
 				y: self.y - 1,
@@ -61,7 +81,7 @@ impl Coordintes {
 				y: self.y,
 			});
 
-			if self.y < limit_y {
+			if self.y < limit.y {
 				v.push(Coordintes {
 					x: self.x + 1,
 					y: self.y + 1,
@@ -74,7 +94,7 @@ impl Coordintes {
 				y: self.y - 1,
 			})
 		}
-		if self.y < limit_y {
+		if self.y < limit.y {
 			v.push(Coordintes {
 				x: self.x,
 				y: self.y + 1,

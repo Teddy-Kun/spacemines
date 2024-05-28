@@ -168,7 +168,7 @@ fn parse_choice(text: String) -> Result<Choice, Error> {
 	};
 
 	Ok(Choice {
-		coords: Coordintes { x: x, y: y },
+		coords: Coordintes { x, y },
 		action,
 	})
 }
