@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::{collections::HashSet, fmt::Display, io::{self, Write}};
+use std::{collections::HashSet, fmt::Display};
 
 pub mod tile;
 use rand::{rngs::StdRng, Rng, SeedableRng};
@@ -52,7 +52,12 @@ impl Field {
 	// (0,0) is in the top left corner
 	fn get_index(&self, coords: &Coordintes) -> Result<usize, Error> {
 		if !coords.is_inside(&self.limit) {
-			return Err(Error::new((String::from("requested coordinates ") + coords.to_string().as_str() + " are outside the grid").as_str()));
+			return Err(Error::new(
+				(String::from("requested coordinates ")
+					+ coords.to_string().as_str()
+					+ " are outside the grid")
+					.as_str(),
+			));
 		}
 
 		Ok(coords.x as usize + (coords.y as usize * self.limit.x as usize))

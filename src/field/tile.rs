@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use rand::{rngs::StdRng, Rng};
 
 #[derive(Debug, Clone)]
@@ -27,6 +29,12 @@ pub struct Coordintes {
 	pub y: u8,
 }
 
+impl Display for Coordintes {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "[{}, {}]", self.x, self.y)
+	}
+}
+
 impl Coordintes {
 	pub fn new() -> Coordintes {
 		Coordintes { x: 0, y: 0 }
@@ -37,16 +45,6 @@ impl Coordintes {
 			x: rng.gen_range(0..limit.x),
 			y: rng.gen_range(0..limit.x),
 		}
-	}
-
-	pub fn to_string(&self) -> String {
-		let mut itoa = itoa::Buffer::new();
-		let x = itoa.format(self.x);
-
-		let mut itoa = itoa::Buffer::new();
-		let y = itoa.format(self.y);
-
-		String::from("[") + x + ", " + y + "]"
 	}
 
 	pub fn is_inside(&self, inside_of: &Coordintes) -> bool {
@@ -72,7 +70,7 @@ impl Coordintes {
 				y: self.y,
 			});
 
-			if self.y < limit.y -1 {
+			if self.y < limit.y - 1 {
 				v.push(Coordintes {
 					x: self.x - 1,
 					y: self.y + 1,
@@ -80,7 +78,7 @@ impl Coordintes {
 			}
 		}
 
-		if self.x < limit.x -1 {
+		if self.x < limit.x - 1 {
 			if self.y > 0 {
 				v.push(Coordintes {
 					x: self.x + 1,
@@ -93,7 +91,7 @@ impl Coordintes {
 				y: self.y,
 			});
 
-			if self.y < limit.y -1 {
+			if self.y < limit.y - 1 {
 				v.push(Coordintes {
 					x: self.x + 1,
 					y: self.y + 1,
@@ -106,7 +104,7 @@ impl Coordintes {
 				y: self.y - 1,
 			})
 		}
-		if self.y < limit.y - 1{
+		if self.y < limit.y - 1 {
 			v.push(Coordintes {
 				x: self.x,
 				y: self.y + 1,
