@@ -9,7 +9,7 @@ rand = "0.8.5"
 itoa = "1.0.11"
 atoi = "2.0.0"
 
-libcosmic = { git = "https://github.com/pop-os/libcosmic", default-features = false, features = ["a11y", "smol", "wayland", "wgpu"], optional = true}
+libcosmic = { git = "https://github.com/pop-os/libcosmic", default-features = false, features = ["a11y", "tokio", "wayland", "wgpu"], optional = true}
 cosmic-time = { version = "0.2.0", optional = true }
 clap = { version = "4.5.4", features = ["derive"], optional = true }
 
