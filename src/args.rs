@@ -34,17 +34,17 @@ impl Args {
 			}
 		};
 		
-		let chars: Vec<char> = seed.chars().collect();
 		let mut char_bytes: Vec<u8> = Vec::new();
-		for c in chars {
-			char_bytes.push(c as u8);
+		for c in seed.chars() {
+			char_bytes.push(c as u8)
 		}
 
 		if let Some(s) = atoi(&char_bytes) {
 			return s;
 		}
 
-		todo!("Hash string")
+		let checksummer = crc::Crc::<u64>::new(&crc::CRC_64_ECMA_182);
+		checksummer.checksum(&char_bytes)
 	}
 
 	pub fn new_random_seed(&mut self) -> u64 {
