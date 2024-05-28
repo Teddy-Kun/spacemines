@@ -6,6 +6,15 @@ use clap::Parser;
 pub struct Args {
 	#[arg(short,long,default_value_t = String::from(""))]
 	pub seed: String,
+
+	#[arg(short,default_value_t = 9)]
+	pub x: u8,
+
+	#[arg(short,default_value_t = 9)]
+	pub y: u8,
+
+	#[arg(short,default_value_t = 10)]
+	pub mines: u16
 }
 
 pub fn seed_to_u64(seed: &str) -> u64 {

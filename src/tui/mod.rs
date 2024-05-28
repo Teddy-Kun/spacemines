@@ -28,8 +28,9 @@ struct Choice {
 }
 
 pub fn run_tui() {
-	let mut f = Field::new(9, 9, 10);
 	let args = Args::parse();
+
+	let mut f = Field::new(args.x, args.y, args.mines);
 
 	let mut choice = Choice {
 		coords: Coordintes { x: 0, y: 0 },
