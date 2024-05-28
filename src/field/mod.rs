@@ -73,28 +73,38 @@ impl Field {
 		Ok((x, y))
 	}
 
-	pub fn is_mine(&self, coords: Coordintes) -> Result<bool, Error> {
-		let index = self.get_index(&coords)?;
+	pub fn is_mine(&self, coords: &Coordintes) -> Result<bool, Error> {
+		let index = self.get_index(coords)?;
 		Ok(self.field[index].is_mine)
 	}
 
-	pub fn flag(&mut self, coords: Coordintes) -> Result<(), Error> {
-		let index = self.get_index(&coords)?;
+	pub fn is_flag(&self, coords: &Coordintes) -> Result<bool, Error> {
+		let index = self.get_index(coords)?;
+		Ok(self.field[index].flag)
+	}
+
+	pub fn is_unknown(&self, coords: &Coordintes) -> Result<bool, Error> {
+		let index = self.get_index(coords)?;
+		Ok(self.field[index].unknown)
+	}
+
+	pub fn flag(&mut self, coords: &Coordintes) -> Result<(), Error> {
+		let index = self.get_index(coords)?;
 
 		self.field[index].unknown = false;
 		self.field[index].flag = !self.field[index].flag;
 		Ok(())
 	}
 
-	pub fn mark_unknown(&mut self, coords: Coordintes) -> Result<(), Error> {
-		let index = self.get_index(&coords)?;
+	pub fn mark_unknown(&mut self, coords: &Coordintes) -> Result<(), Error> {
+		let index = self.get_index(coords)?;
 
 		self.field[index].unknown = !self.field[index].unknown;
 		self.field[index].flag = false;
 		Ok(())
 	}
 
-	fn recurse_reveal(&mut self, coords: Coordintes) {
+	fn recurse_reveal(&mut self, coords: &Coordintes) {
 		let mut to_reveal = coords.get_surrounding(&self.limit);
 
 		while let Some(working) = to_reveal.pop() {
@@ -112,8 +122,8 @@ impl Field {
 		}
 	}
 
-	pub fn reveal(&mut self, coords: Coordintes) -> Result<&Tile, Error> {
-		let index = self.get_index(&coords)?;
+	pub fn reveal(&mut self, coords: &Coordintes) -> Result<&Tile, Error> {
+		let index = self.get_index(coords)?;
 
 		if self.field[index].is_mine || self.field[index].revealed {
 			return Ok(&self.field[index]);

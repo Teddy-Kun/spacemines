@@ -7,7 +7,9 @@ use atoi::atoi;
 use clap::Parser;
 
 use crate::{
-	args::{self, Args}, error::Error, field::{tile::Coordintes, Field}
+	args::Args,
+	error::Error,
+	field::{tile::Coordintes, Field},
 };
 
 #[derive(Debug)]
@@ -72,7 +74,7 @@ pub fn run_tui() {
 							Ok(s) => s,
 						}
 					} else {
-						let s = args::seed_to_u64(&args.seed);
+						let s = args.seed_to_u64();
 						if let Err(e) = f.init_with_seed(&choice.coords, s) {
 							e.fatal();
 						}
@@ -80,7 +82,7 @@ pub fn run_tui() {
 					};
 					println!("Seed: {}", seed)
 				}
-				match f.reveal(choice.coords) {
+				match f.reveal(&choice.coords) {
 					Err(e) => e.fatal(),
 					Ok(t) => {
 						if t.is_mine {
@@ -92,12 +94,12 @@ pub fn run_tui() {
 				}
 			}
 			Action::Flag => {
-				if let Err(e) = f.flag(choice.coords) {
+				if let Err(e) = f.flag(&choice.coords) {
 					e.fatal();
 				}
 			}
 			Action::Unknown => {
-				if let Err(e) = f.mark_unknown(choice.coords) {
+				if let Err(e) = f.mark_unknown(&choice.coords) {
 					e.fatal()
 				}
 			}
