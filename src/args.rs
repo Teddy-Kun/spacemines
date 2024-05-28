@@ -14,7 +14,7 @@ pub struct Args {
 	#[arg(long, short = 'y', default_value_t = 9)]
 	pub height: u8,
 
-	#[arg(short, default_value_t = 10)]
+	#[arg(long, short, default_value_t = 10)]
 	pub mines: u16,
 
 	#[arg(short, long)]
