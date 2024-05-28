@@ -39,6 +39,16 @@ impl Coordintes {
 		}
 	}
 
+	pub fn to_string(&self) -> String {
+		let mut itoa = itoa::Buffer::new();
+		let x = itoa.format(self.x);
+
+		let mut itoa = itoa::Buffer::new();
+		let y = itoa.format(self.y);
+
+		String::from("[") + x + ", " + y + "]"
+	}
+
 	pub fn is_inside(&self, inside_of: &Coordintes) -> bool {
 		if self.x < inside_of.x && self.y < inside_of.y {
 			return true;
@@ -62,7 +72,7 @@ impl Coordintes {
 				y: self.y,
 			});
 
-			if self.y < limit.y {
+			if self.y < limit.y -1 {
 				v.push(Coordintes {
 					x: self.x - 1,
 					y: self.y + 1,
@@ -70,7 +80,7 @@ impl Coordintes {
 			}
 		}
 
-		if self.x < limit.x {
+		if self.x < limit.x -1 {
 			if self.y > 0 {
 				v.push(Coordintes {
 					x: self.x + 1,
@@ -83,7 +93,7 @@ impl Coordintes {
 				y: self.y,
 			});
 
-			if self.y < limit.y {
+			if self.y < limit.y -1 {
 				v.push(Coordintes {
 					x: self.x + 1,
 					y: self.y + 1,
@@ -96,7 +106,7 @@ impl Coordintes {
 				y: self.y - 1,
 			})
 		}
-		if self.y < limit.y {
+		if self.y < limit.y - 1{
 			v.push(Coordintes {
 				x: self.x,
 				y: self.y + 1,
