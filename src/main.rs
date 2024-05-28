@@ -1,5 +1,9 @@
+mod args;
 mod error;
 mod field;
+
+#[cfg(feature = "gui")]
+mod gui;
 
 #[cfg(feature = "tui")]
 mod tui;
@@ -13,7 +17,9 @@ fn main() {
 
 #[cfg(all(feature = "gui", not(feature = "tui")))]
 fn main() {
-	todo!("Gui")
+	if let Err(e) = gui::run_gui() {
+		e.fatal()
+	}
 }
 
 #[cfg(all(feature = "tui", feature = "gui"))]

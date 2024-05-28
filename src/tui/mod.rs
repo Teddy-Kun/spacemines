@@ -7,11 +7,8 @@ use atoi::atoi;
 use clap::Parser;
 
 use crate::{
-	error::Error,
-	field::{tile::Coordintes, Field},
-	tui::args::Args,
+	args::{self, Args}, error::Error, field::{tile::Coordintes, Field}
 };
-mod args;
 
 #[derive(Debug)]
 enum Action {
