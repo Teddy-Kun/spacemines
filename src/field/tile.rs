@@ -71,10 +71,12 @@ impl Coordintes {
 		}
 
 		if self.x < limit.x {
-			v.push(Coordintes {
-				x: self.x + 1,
-				y: self.y - 1,
-			});
+			if self.y > 0 {
+				v.push(Coordintes {
+					x: self.x + 1,
+					y: self.y - 1,
+				});
+			}
 
 			v.push(Coordintes {
 				x: self.x + 1,
