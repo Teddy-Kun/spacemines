@@ -18,17 +18,45 @@ struct Coordintes {
 impl Coordintes {
 	fn get_surrounding(&self) -> Vec<Coordintes> {
 		let mut v = Vec::new();
+
 		if self.x > 0 {
+			if self.y > 0 {
+				v.push(Coordintes {
+					x: self.x - 1,
+					y: self.y - 1,
+				})
+			}
+
 			v.push(Coordintes {
 				x: self.x - 1,
 				y: self.y,
-			})
+			});
+
+			if self.y < 254 {
+				v.push(Coordintes {
+					x: self.x - 1,
+					y: self.y + 1,
+				});
+			}
 		}
+
 		if self.x < 254 {
 			v.push(Coordintes {
 				x: self.x + 1,
+				y: self.y - 1,
+			});
+
+			v.push(Coordintes {
+				x: self.x + 1,
 				y: self.y,
-			})
+			});
+
+			if self.y < 254 {
+				v.push(Coordintes {
+					x: self.x + 1,
+					y: self.y + 1,
+				});
+			}
 		}
 		if self.y > 0 {
 			v.push(Coordintes {
@@ -211,6 +239,8 @@ impl Field {
 			if !self.field[i].is_mine {
 				mines += 1;
 				self.field[i].is_mine = true;
+			} else {
+				continue;
 			}
 
 			// increase the points for all surrounding tiles
