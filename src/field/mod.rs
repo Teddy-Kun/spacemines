@@ -88,6 +88,28 @@ impl Field {
 		Ok(self.field[index].unknown)
 	}
 
+	pub fn toggle_mark(&mut self, coords: &Coordintes) -> Result<(), Error> {
+		let index = self.get_index(coords)?;
+
+		if self.field[index].flag {
+			self.field[index].flag = false;
+			self.field[index].unknown = true;
+		} else if self.field[index].unknown {
+			self.field[index].flag = false;
+			self.field[index].unknown = false;
+		} else {
+			self.field[index].flag = true;
+			self.field[index].unknown = false;
+		}
+
+		Ok(())
+	}
+
+	pub fn already_revealed(&self, coords: &Coordintes) -> Result<bool, Error> {
+		let index = self.get_index(coords)?;
+		Ok(self.field[index].revealed)
+	}
+
 	pub fn flag(&mut self, coords: &Coordintes) -> Result<(), Error> {
 		let index = self.get_index(coords)?;
 

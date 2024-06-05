@@ -23,11 +23,10 @@ pub struct Args {
 }
 
 impl Args {
-	pub fn get_seed(&mut self) -> u64 {
+	pub fn get_seed(&self) -> u64 {
 		let seed = match &self.seed {
 			None => {
-				let mut rng = rand::thread_rng();
-				return rng.gen();
+				return Args::new_random_seed();
 			}
 
 			Some(s) => s.clone(),
@@ -46,7 +45,7 @@ impl Args {
 		checksummer.checksum(&char_bytes)
 	}
 
-	pub fn new_random_seed(&mut self) -> u64 {
+	pub fn new_random_seed() -> u64 {
 		let mut rng = rand::thread_rng();
 		rng.gen()
 	}

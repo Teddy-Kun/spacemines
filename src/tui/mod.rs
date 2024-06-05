@@ -27,7 +27,7 @@ struct Choice {
 }
 
 pub fn run_tui() {
-	let mut args = Args::parse();
+	let args = Args::parse();
 
 	let mut f = Field::new(args.width, args.height, args.mines);
 

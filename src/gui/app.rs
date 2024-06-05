@@ -1,15 +1,17 @@
+use crate::field::tile::Coordintes;
 use crate::field::Field;
 use crate::{args::Args, fl};
 
 use clap::Parser;
 use cosmic::app::{Command, Core};
-use cosmic::iced::alignment::{Horizontal, Vertical};
-use cosmic::iced::{window::Id, Length};
+use cosmic::iced::window::Id;
+use cosmic::widget::icon::Handle;
 use cosmic::widget::{self, menu};
-use cosmic::{Application, ApplicationExt, Apply, Element};
+use cosmic::{Application, ApplicationExt, Element};
 use std::collections::HashMap;
 
 use super::about::about;
+use super::main_view::get_field;
 
 pub const REPOSITORY: &str = "https://github.com/Teddy-Kun/spacemines";
 
@@ -18,6 +20,7 @@ pub const REPOSITORY: &str = "https://github.com/Teddy-Kun/spacemines";
 pub struct Spacemines {
 	args: Args,
 	field: Field,
+	seed: u64,
 
 	/// Application state which is managed by the COSMIC runtime.
 	core: Core,
@@ -25,6 +28,8 @@ pub struct Spacemines {
 	context_page: ContextPage,
 	/// Key bindings for the application's menu bar.
 	key_binds: HashMap<menu::KeyBind, MenuAction>,
+
+	mine_icon: Handle,
 }
 
 /// This is the enum that contains all the possible variants that your application will need to transmit messages.
@@ -34,6 +39,8 @@ pub struct Spacemines {
 pub enum Message {
 	NewGame,
 	NewSeed,
+	Click(Coordintes),
+	RClick(Coordintes),
 	LaunchUrl(String),
 	ToggleContextPage(ContextPage),
 }
@@ -109,12 +116,15 @@ impl Application for Spacemines {
 		let width = args.width;
 		let height = args.height;
 		let mines = args.mines;
+		let seed = args.get_seed();
 		let mut app = Spacemines {
 			args,
 			field: Field::new(width, height, mines),
+			seed,
 			core,
 			context_page: ContextPage::default(),
 			key_binds: HashMap::new(),
+			mine_icon: widget::icon::from_name("name").size(16).handle(),
 		};
 
 		let command = app.update_titles();
@@ -154,13 +164,7 @@ impl Application for Spacemines {
 	///
 	/// To get a better sense of which widgets are available, check out the `widget` module.
 	fn view(&self) -> Element<Self::Message> {
-		widget::text::title1(fl!("welcome"))
-			.apply(widget::container)
-			.width(Length::Fill)
-			.height(Length::Fill)
-			.align_x(Horizontal::Center)
-			.align_y(Vertical::Center)
-			.into()
+		get_field(&self.field, self.mine_icon.clone())
 	}
 
 	/// Application messages are handled here. The application state can be modified based on
@@ -169,11 +173,46 @@ impl Application for Spacemines {
 	fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
 		match message {
 			Message::NewGame => {
-				self.field = Field::new(self.args.width, self.args.height, self.args.mines)
+				self.field = Field::new(self.args.width, self.args.height, self.args.mines);
 			}
+
 			Message::NewSeed => {
-				self.args.new_random_seed();
+				self.seed = Args::new_random_seed();
+				self.field = Field::new(self.args.width, self.args.height, self.args.mines);
 			}
+
+			Message::Click(coords) => {
+				println!("Clicked {}", coords);
+				if !self.field.is_initialized() {
+					if let Err(e) = self.field.init(&coords, self.seed) {
+						e.fatal();
+					}
+				}
+
+				let revealed = match self.field.already_revealed(&coords) {
+					Err(e) => {
+						e.fatal();
+						false
+					}
+
+					Ok(r) => r,
+				};
+
+				if !revealed {
+					if let Err(e) = self.field.reveal(&coords) {
+						e.fatal();
+					}
+
+					println!("{}", self.field);
+				}
+			}
+
+			Message::RClick(coords) => {
+				if let Err(e) = self.field.toggle_mark(&coords) {
+					e.fatal()
+				}
+			}
+
 			Message::LaunchUrl(url) => {
 				let _result = open::that_detached(url);
 			}
