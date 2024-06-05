@@ -1123,9 +1123,7 @@ source = "git+https://github.com/pop-os/libcosmic.git#173ddca60fdb26cf5b1784edfc
 dependencies = [
  "atomicwrites",
  "cosmic-config-derive",
- "cosmic-settings-daemon",
  "dirs",
- "futures-util",
  "iced_futures",
  "known-folders",
  "notify",
@@ -1135,7 +1133,6 @@ dependencies = [
  "tokio",
  "tracing",
  "xdg",
- "zbus 4.2.1",
 ]
 
 [[package]]
@@ -1158,14 +1155,6 @@ dependencies = [
  "wayland-protocols",
  "wayland-scanner",
  "wayland-server",
-]
-
-[[package]]
-name = "cosmic-settings-daemon"
-version = "0.1.0"
-source = "git+https://github.com/pop-os/dbus-settings-bindings#badfc6a0bbe7c93927fe32692795699a675ae4c4"
-dependencies = [
- "zbus 4.2.1",
 ]
 
 [[package]]
@@ -2925,7 +2914,6 @@ dependencies = [
  "chrono",
  "cosmic-client-toolkit",
  "cosmic-config",
- "cosmic-settings-daemon",
  "cosmic-theme",
  "css-color",
  "derive_setters",
