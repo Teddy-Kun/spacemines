@@ -17,6 +17,7 @@ pub struct Args {
 	#[arg(long, short, default_value_t = 10)]
 	pub mines: u16,
 
+	#[cfg(all(feature = "tui", feature = "gui"))]
 	#[arg(short, long)]
 	pub tui: bool,
 }
