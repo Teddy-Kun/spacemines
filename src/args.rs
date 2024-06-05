@@ -26,7 +26,7 @@ impl Args {
 	pub fn get_seed(&self) -> u64 {
 		let seed = match &self.seed {
 			None => {
-				return Args::new_random_seed();
+				return new_random_seed();
 			}
 
 			Some(s) => s.clone(),
@@ -44,9 +44,9 @@ impl Args {
 		let checksummer = crc::Crc::<u64>::new(&crc::CRC_64_ECMA_182);
 		checksummer.checksum(&char_bytes)
 	}
+}
 
-	pub fn new_random_seed() -> u64 {
-		let mut rng = rand::thread_rng();
-		rng.gen()
-	}
+pub fn new_random_seed() -> u64 {
+	let mut rng = rand::thread_rng();
+	rng.gen()
 }

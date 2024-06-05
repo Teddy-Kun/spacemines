@@ -1,3 +1,4 @@
+use crate::args;
 use crate::field::tile::Coordintes;
 use crate::field::Field;
 use crate::{args::Args, fl};
@@ -177,7 +178,7 @@ impl Application for Spacemines {
 			}
 
 			Message::NewSeed => {
-				self.seed = Args::new_random_seed();
+				self.seed = args::new_random_seed();
 				self.field = Field::new(self.args.width, self.args.height, self.args.mines);
 			}
 
