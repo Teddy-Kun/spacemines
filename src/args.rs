@@ -5,7 +5,7 @@ use rand::Rng;
 #[derive(Parser, Debug)]
 #[command(version)]
 pub struct Args {
-	#[arg(short,long)]
+	#[arg(short, long)]
 	pub seed: Option<String>,
 
 	#[arg(long, short = 'x', default_value_t = 9)]
@@ -29,11 +29,9 @@ impl Args {
 				return rng.gen();
 			}
 
-			Some(s) => {
-				s.clone()
-			}
+			Some(s) => s.clone(),
 		};
-		
+
 		let mut char_bytes: Vec<u8> = Vec::new();
 		for c in seed.chars() {
 			char_bytes.push(c as u8)
